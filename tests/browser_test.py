@@ -35,5 +35,19 @@ class URLTest(unittest.TestCase):
         self.assertEqual("www.iana.org", browser.host)
         self.assertEqual("/help/example-domains", browser.path)
 
+    def test_ctor_local_file(self):
+        url = "file:///c/test/simple.html"
+        browser=URL(url)
+        self.assertEqual("file", browser.scheme)
+        #self.assert(browser.port)
+        #self.assertEqual("www.iana.org", browser.host)
+        self.assertEqual("/c/test/simple.html", browser.path)
+
+    def test_request_local_file(self):
+        url = "file:///home/josh/jbrowser/tests/resources/simple.html"
+        browser=URL(url)
+        result=browser.request()
+        self.assertEqual("<html><body><p>Hello, World!</p></body></html>", result)
+
 if __name__ == '__main__':
     unittest.main()
