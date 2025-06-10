@@ -3,6 +3,16 @@ from src.browser import URL
 
 class URLTest(unittest.TestCase):
 
+    def test_ctor_empty_url(self):
+        browser=URL("")
+        self.assertEqual("file", browser.scheme)
+        self.assertEqual("/home/josh/jbrowser/tests/resources/simple.html", browser.path)
+
+    def test_ctor_no_url(self):
+        browser=URL()
+        self.assertEqual("file", browser.scheme)
+        self.assertEqual("/home/josh/jbrowser/tests/resources/simple.html", browser.path)
+
     def test_ctor_http_example_org(self):
         url = "http://example.org"
         browser=URL(url)

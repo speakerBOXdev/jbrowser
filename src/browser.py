@@ -2,7 +2,10 @@ import socket
 import ssl
 
 class URL:
-    def __init__(self, url):
+    def __init__(self, url=""):
+        if (url == ""):
+            url="file:///home/josh/jbrowser/tests/resources/simple.html"
+
         self.scheme, url = url.split("://", 1)
         assert self.scheme in ["http", "https", "file"]
         if self.scheme == "http":
