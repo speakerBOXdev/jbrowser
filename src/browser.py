@@ -14,9 +14,22 @@ class Browser:
             height=HEIGHT
         )
         self.canvas.pack()
-        self.scroll = 0
+        self.scroll_y = 0
+        self.scroll_x = 0
         self.window.bind("<Down>", self.scrolldown)
         self.window.bind("<Up>", self.scrollup)
+        self.window.bind("<Left>", self.scrollleft)
+        self.window.bind("<Right>", self.scrollright)
+        
+        self.window.bind("<Home>", self.scrolltop)
+        self.window.bind("<End>", self.scrollbottom)
+        self.window.bind("<MouseWheel>", self.scrollwheel)
+        # self.window.bind("<Button-1>", self.scrollwheel)
+        # self.window.bind("<Button-2>", self.scrollwheel)
+        # self.window.bind("<Button-3>", self.scrollwheel)
+        self.window.bind("<Button-4>", self.scrollwheel)
+        self.window.bind("<Button-5>", self.scrollwheel)
+        print("Hello, World!")
 
     def load(self, url):
         response=url.request()
@@ -26,9 +39,13 @@ class Browser:
 
     def draw(self):
         self.canvas.delete("all")
-
+        #print("scroll({},{})".format(self.scroll_x, self.scroll_y))
         for x, y, c in self.display_list:
-            self.canvas.create_text(x, y - self.scroll, text=c)
+            if y > self.scroll_y + HEIGHT: continue
+            if y < VSTEP + self.scroll_y: continue
+            if x > self.scroll_x + WIDTH: continue
+            if x < HSTEP + self.scroll_x: continue
+            self.canvas.create_text(x - self.scroll_x, y - self.scroll_y, text=c)
 
     def lex(self, body):
         text = ""
@@ -57,19 +74,56 @@ class Browser:
                     text+=c
         return text
 
-    def scrolldown(self, e):
-        if self.scroll+SCROLL_STEP > HEIGHT:
-            self.scroll=HEIGHT
-        else:
-            self.scroll += SCROLL_STEP
+    def scrollwheel(self, e):       
+        if e.num == 4:
+            self.scrollup("")
+        elif e.num == 5:
+            self.scrolldown("")
+
+    def scrolltop(self, e):
+        self.scroll_x=0
+        self.scroll_y=0
         self.draw()
 
-    def scrollup(self, e):
-        if self.scroll-SCROLL_STEP < 0:
-            self.scroll=0
-        else:
-            self.scroll -= SCROLL_STEP
+    def scrollbottom(self, e):
+        self.scroll_y=HEIGHT
         self.draw()
+
+    def scrollleft(self, e):
+        scroll=self.scroll_x-SCROLL_STEP
+        if scroll < 0:
+            scroll=0
+            
+        if scroll != self.scroll_x:
+            self.scroll_x=scroll
+            self.draw()
+
+    def scrollright(self, e):
+        scroll=self.scroll_x+SCROLL_STEP
+        if scroll > WIDTH:
+            scroll=WIDTH
+            
+        if scroll != self.scroll_x:
+            self.scroll_x=scroll
+            self.draw()
+
+    def scrolldown(self, e):
+        scroll=self.scroll_y+SCROLL_STEP
+        if scroll > HEIGHT:
+            scroll=HEIGHT
+        
+        if scroll != self.scroll_y:
+            self.scroll_y=scroll
+            self.draw()
+
+    def scrollup(self, e):
+        scroll=self.scroll_y-SCROLL_STEP
+        if self.scroll_y-SCROLL_STEP < 0:
+            scroll=0
+        
+        if scroll != self.scroll_y:
+            self.scroll_y=scroll
+            self.draw()
 
 class URL:
     def __init__(self, url=""):
@@ -160,9 +214,9 @@ def layout(text):
             display_list.append((cursor_x, cursor_y, c))
             cursor_x+=HSTEP
 
-        if (cursor_x >= WIDTH-HSTEP):
-            cursor_x=HSTEP
-            cursor_y+=VSTEP   
+        # if (cursor_x >= WIDTH-HSTEP):
+        #     cursor_x=HSTEP
+        #     cursor_y+=VSTEP   
 
     return display_list
 
@@ -172,11 +226,6 @@ def get_entity_val(entity):
     elif entity == "&gt;":
         return ">"
     return ""
-
-def load(url):
-    body = url.request()
-    show(body)
-
 
 if __name__ == "__main__":
     import sys
