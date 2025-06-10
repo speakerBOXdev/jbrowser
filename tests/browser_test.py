@@ -49,8 +49,6 @@ class URLTest(unittest.TestCase):
         url = "file:///c/test/simple.html"
         browser=URL(url)
         self.assertEqual("file", browser.scheme)
-        #self.assert(browser.port)
-        #self.assertEqual("www.iana.org", browser.host)
         self.assertEqual("/c/test/simple.html", browser.path)
 
     def test_request_local_file(self):
@@ -58,6 +56,17 @@ class URLTest(unittest.TestCase):
         browser=URL(url)
         result=browser.request()
         self.assertEqual("<html><body><p>Hello, World!</p></body></html>", result)
+
+    def test_ctor_data(self):
+        url = "data:///text/html,Hello, World!"
+        browser=URL(url)
+        self.assertEqual("data", browser.scheme)
+
+    def test_request_data(self):
+        url = "data:///text/html,Hello, World!"
+        browser=URL(url)
+        result=browser.request()
+        self.assertEqual("Hello, World!", result)
 
 if __name__ == '__main__':
     unittest.main()

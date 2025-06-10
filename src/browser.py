@@ -7,11 +7,15 @@ class URL:
             url="file:///home/josh/jbrowser/tests/resources/simple.html"
 
         self.scheme, url = url.split("://", 1)
-        assert self.scheme in ["http", "https", "file"]
+        assert self.scheme in ["http", "https", "file", "data"]
         if self.scheme == "http":
             self.port = 80
         elif self.scheme == "https":
             self.port = 443
+        elif self.scheme == "data":
+            content_type, content=url.split(",", 1)
+            if (content_type == "/text/html"):
+                self.content=content
 
         if "/" not in url:
             url = url + "/"
@@ -32,6 +36,9 @@ class URL:
              with open(self.path, 'r') as file:
                 content=file.read()
              return content
+        elif self.scheme == "data":
+            content=self.content
+            return content
                                    
 
         s = socket.socket(
