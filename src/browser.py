@@ -9,7 +9,6 @@ class URL:
             self.port = 80
         elif self.scheme == "https":
             self.port = 443
-        
 
         if "/" not in url:
             url = url + "/"
