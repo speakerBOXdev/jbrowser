@@ -68,5 +68,12 @@ class URLTest(unittest.TestCase):
         result=browser.request()
         self.assertEqual("Hello, World!", result)
 
+    def test_show_entities(self):
+        url = "data:///text/html,Hello, World"
+        browser=URL(url)
+        body="&lt;div&gt;"
+        result=browser.show(body)
+        self.assertEqual("<div>", result)
+
 if __name__ == '__main__':
     unittest.main()

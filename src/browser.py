@@ -39,8 +39,7 @@ class URL:
         elif self.scheme == "data":
             content=self.content
             return content
-                                   
-
+           
         s = socket.socket(
             family=socket.AF_INET,
             type=socket.SOCK_STREAM,
@@ -82,13 +81,36 @@ class URL:
 
 def show(body):
     in_tag = False
+    in_entity = False
+    entity=""
     for c in body:
         if c == "<":
             in_tag = True
         elif c == ">":
             in_tag = False
+        elif c == "&":
+            in_entity = True
+            entity="&"
+        elif c == ";":
+            in_entity = False
+            entity=entity+";"
+            entityValue=get_entity_val(entity)
+            print(entityValue, end="")
+            entity=""
         elif not in_tag:
-            print(c, end="")
+            if in_entity:
+                entity+=c
+            else:
+                print(c, end="")
+
+    print()
+
+def get_entity_val(entity):
+    if entity == "&lt;":
+        return "<"
+    elif entity == "&gt;":
+        return ">"
+    return ""
 
 def load(url):
     body = url.request()
@@ -97,6 +119,5 @@ def load(url):
 if __name__ == "__main__":
     import sys
     url=sys.argv[1]
-    print(url)
     browser=URL(url)
     load(browser)
