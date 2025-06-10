@@ -20,6 +20,10 @@ class URL:
             self.host, port = self.host.split(":", 1)
             self.port = int(port)
 
+    def add_header(self, request, header, value):
+        request += "{}: {}\r\n".format(header, value)
+        return request
+
     def request(self):
         s = socket.socket(
             family=socket.AF_INET,
@@ -34,7 +38,9 @@ class URL:
         s.connect((self.host, self.port))
 
         request = "GET {} HTTP/1.0\r\n".format(self.path)
-        request += "Host: {}\r\n".format(self.host)
+        request = self.add_header(request, "Host", self.host)
+        request = self.add_header(request, "Connection", "close")
+        request = self.add_header(request, "User-Agent", "jbrowser-0.1")
         request += "\r\n"
         s.send(request.encode("utf8"))
 
