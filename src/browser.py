@@ -4,6 +4,7 @@ import tkinter
 
 WIDTH, HEIGHT = 800, 600
 HSTEP, VSTEP = 13, 18
+SCROLL_STEP = 100
 class Browser:
     def __init__(self):
         self.window = tkinter.Tk()
@@ -13,22 +14,21 @@ class Browser:
             height=HEIGHT
         )
         self.canvas.pack()
+        self.scroll = 0
+        self.window.bind("<Down>", self.scrolldown)
+        self.window.bind("<Up>", self.scrollup)
 
     def load(self, url):
-        
         response=url.request()
         text=self.lex(response)
-        cursor_x, cursor_y = HSTEP, VSTEP
-        for c in text:
-            if c == "\n":
-                cursor_y+=VSTEP
-                cursor_x=HSTEP
-            else:
-                self.canvas.create_text(cursor_x, cursor_y, text=c)
-            cursor_x+=HSTEP
-            if (cursor_x >= WIDTH-HSTEP):
-                cursor_x=HSTEP
-                cursor_y+=VSTEP
+        self.display_list = layout(text)
+        self.draw()
+
+    def draw(self):
+        self.canvas.delete("all")
+
+        for x, y, c in self.display_list:
+            self.canvas.create_text(x, y - self.scroll, text=c)
 
     def lex(self, body):
         text = ""
@@ -56,6 +56,20 @@ class Browser:
                 else:
                     text+=c
         return text
+
+    def scrolldown(self, e):
+        if self.scroll+SCROLL_STEP > HEIGHT:
+            self.scroll=HEIGHT
+        else:
+            self.scroll += SCROLL_STEP
+        self.draw()
+
+    def scrollup(self, e):
+        if self.scroll-SCROLL_STEP < 0:
+            self.scroll=0
+        else:
+            self.scroll -= SCROLL_STEP
+        self.draw()
 
 class URL:
     def __init__(self, url=""):
@@ -134,6 +148,23 @@ class URL:
         s.close()
 
         return content
+
+def layout(text):
+    display_list = []
+    cursor_x, cursor_y = HSTEP, VSTEP
+    for c in text:
+        if c == "\n":
+            cursor_y+=VSTEP
+            cursor_x=HSTEP
+        else:            
+            display_list.append((cursor_x, cursor_y, c))
+            cursor_x+=HSTEP
+
+        if (cursor_x >= WIDTH-HSTEP):
+            cursor_x=HSTEP
+            cursor_y+=VSTEP   
+
+    return display_list
 
 def get_entity_val(entity):
     if entity == "&lt;":
