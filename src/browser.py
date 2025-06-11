@@ -3,17 +3,21 @@ import ssl
 import tkinter
 
 WIDTH, HEIGHT = 800, 600
-HSTEP, VSTEP = 13, 18
+HSTEP, VSTEP = 12, 18
 SCROLL_STEP = 100
 class Browser:
     def __init__(self):
+
+        self.width=WIDTH
+        self.height=HEIGHT
+
         self.window = tkinter.Tk()
         self.canvas = tkinter.Canvas(
             self.window,
-            width=WIDTH,
-            height=HEIGHT
+            width=self.width,
+            height=self.height
         )
-        self.canvas.pack()
+        self.canvas.pack(fill="both",expand=True)
         self.scroll_y = 0
         self.scroll_x = 0
         self.window.bind("<Down>", self.scrolldown)
@@ -29,23 +33,56 @@ class Browser:
         # self.window.bind("<Button-3>", self.scrollwheel)
         self.window.bind("<Button-4>", self.scrollwheel)
         self.window.bind("<Button-5>", self.scrollwheel)
-        print("Hello, World!")
+        self.window.bind("<Configure>", self.configure)
+        
 
     def load(self, url):
         response=url.request()
         text=self.lex(response)
         self.display_list = layout(text)
+
+        self.max_x=0
+        self.max_y=0
+        for x, y, c in self.display_list:
+            if x > self.max_x: self.max_x=x
+            if y > self.max_y: self.max_y=y
+
         self.draw()
 
     def draw(self):
         self.canvas.delete("all")
-        #print("scroll({},{})".format(self.scroll_x, self.scroll_y))
+
+        scroll_x_visible=self.max_x > self.width
+        scroll_y_visible=self.max_y > self.height
+
         for x, y, c in self.display_list:
-            if y > self.scroll_y + HEIGHT: continue
+            if y > self.scroll_y + self.height: continue
             if y < VSTEP + self.scroll_y: continue
-            if x > self.scroll_x + WIDTH: continue
+            if x > self.scroll_x + self.width: continue
             if x < HSTEP + self.scroll_x: continue
             self.canvas.create_text(x - self.scroll_x, y - self.scroll_y, text=c)
+
+        scrollbar_color="#229"
+        scrollbar_thickness=5
+        scrollbar_window_offset=2 # scrollbar window padding
+        scrollbar_offset=15 # scrollbar offset at ends
+        if scroll_y_visible == True:
+            x0=self.width-scrollbar_thickness-scrollbar_window_offset
+            x1=self.width-scrollbar_window_offset
+
+            y0=self.scroll_y+scrollbar_window_offset+scrollbar_offset
+            viewport_percentage=self.height/self.max_y            
+            y1=self.scroll_y+(self.height-scrollbar_window_offset-scrollbar_offset)*viewport_percentage
+
+            self.canvas.create_rectangle(x0, y0, x1, y1, fill=scrollbar_color)
+        if scroll_x_visible == True:
+
+            x0=self.scroll_x+scrollbar_offset
+            viewport_percentage=self.width/self.max_x
+            x1=self.scroll_x+(self.width-scrollbar_window_offset-scrollbar_offset)*viewport_percentage
+            y0=self.height-scrollbar_thickness-scrollbar_window_offset
+            y1=self.height-scrollbar_window_offset
+            self.canvas.create_rectangle(x0, y0, x1, y1, fill=scrollbar_color)
 
     def lex(self, body):
         text = ""
@@ -74,6 +111,15 @@ class Browser:
                     text+=c
         return text
 
+    def configure(self, e):
+        if self.width != e.width or self.height != e.height:
+            #print("Configure - previous:{}x{}; current:{}x{}".format(self.width, self.height, e.width, e.height))
+            self.width=e.width
+            self.height=e.height
+            #self.canvas.pack()
+            self.draw()
+        
+
     def scrollwheel(self, e):       
         if e.num == 4:
             self.scrollup("")
@@ -86,7 +132,7 @@ class Browser:
         self.draw()
 
     def scrollbottom(self, e):
-        self.scroll_y=HEIGHT
+        self.scroll_y=self.height
         self.draw()
 
     def scrollleft(self, e):
@@ -100,8 +146,8 @@ class Browser:
 
     def scrollright(self, e):
         scroll=self.scroll_x+SCROLL_STEP
-        if scroll > WIDTH:
-            scroll=WIDTH
+        if scroll > self.width:
+            scroll=self.width
             
         if scroll != self.scroll_x:
             self.scroll_x=scroll
@@ -109,8 +155,8 @@ class Browser:
 
     def scrolldown(self, e):
         scroll=self.scroll_y+SCROLL_STEP
-        if scroll > HEIGHT:
-            scroll=HEIGHT
+        if scroll > self.height:
+            scroll=self.height
         
         if scroll != self.scroll_y:
             self.scroll_y=scroll
