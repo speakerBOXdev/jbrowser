@@ -46,24 +46,8 @@ class Layout:
         font = self.get_font(self.fontsize, self.weight, self.style)
         sw=font.measure(" ")
         w = font.measure(word)
-        cursor_x=self.cursor_x + w + sw
-        if cursor_x > WIDTH - HSTEP:
-            self.flush()
         
         self.line.append((self.cursor_x, word, font))
-        self.cursor_x+= w + sw
-        
-    def entity(self, entity):
-        font = self.get_font(self.fontsize, self.weight, self.style)
-        sw=font.measure(" ")
-        entityVal=self.get_entity_val(entity)
-        w = font.measure(entityVal)
-        
-        cursor_x=self.cursor_x + w + sw
-        if cursor_x > WIDTH - HSTEP:
-            self.flush()
-
-        self.display_list.append((self.cursor_x, self.cursor_y, entityVal, font))
         self.cursor_x+= w + sw
         
         
@@ -75,8 +59,6 @@ class Layout:
                 return
             for word in tok.text.split():
                 self.word(word)
-        # if isinstance(tok, Entity):
-        #     self.entity(tok.entity)
         elif isinstance(tok, Element):
             if tok.tag == "i": self.style="italic"
             elif tok.tag == "/i": self.style="roman"
