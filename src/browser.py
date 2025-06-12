@@ -4,10 +4,11 @@ import tkinter
 import tkinter.font
 from layout import *
 from tag import *
+from parser import *
 
 WIDTH, HEIGHT = 800, 600
 HSTEP, VSTEP = 12, 18
-SCROLL_STEP = 100
+SCROLL_STEP = 10
 class Browser:
     def __init__(self):
 
@@ -41,7 +42,8 @@ class Browser:
 
     def load(self, url):
         response=url.request()
-        tokens=self.lex(response)
+        parser =HTMLParser(response)
+        tokens=parser.parse()
         layout=Layout(tokens)
         self.window.title(layout.title)
         self.display_list=layout.display_list
@@ -89,36 +91,6 @@ class Browser:
             y0=self.height-scrollbar_thickness-scrollbar_window_offset
             y1=self.height-scrollbar_window_offset
             self.canvas.create_rectangle(x0, y0, x1, y1, fill=scrollbar_color)
-
-    def lex(self, body):
-
-        out = []
-        buffer = ""
-        in_tag = False
-        #in_entity = False
-        
-        for c in body:
-            if c == "<":
-                in_tag = True
-                if buffer: out.append(Text(buffer))
-                buffer = ""
-            elif c == ">":
-                in_tag = False
-                out.append(Tag(buffer))
-                buffer = ""
-            # elif c == "&":
-            #     in_entity = True
-            # elif c == ";":
-            #     in_entity = False
-            #     out.append(Entity(buffer))
-            #     buffer = ""
-            else:
-            #elif not in_tag:
-                buffer+=c
-
-        if not in_tag and buffer:
-            out.append(Text(buffer))
-        return out
 
     def configure(self, e):
         if self.width != e.width or self.height != e.height:
