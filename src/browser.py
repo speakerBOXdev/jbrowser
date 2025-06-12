@@ -4,6 +4,7 @@ import tkinter
 import tkinter.font
 from layout import *
 from tag import *
+from controls import *
 from parser import *
 
 WIDTH, HEIGHT = 800, 600
@@ -22,6 +23,10 @@ class Browser:
             height=self.height
         )
         self.canvas.pack(fill="both",expand=True)
+
+        self.scrollbar_y=ScrollBar()
+        self.scrollbar_x=ScrollBar(direction="horizontal")
+
         self.scroll_y = 0
         self.scroll_x = 0
         self.window.bind("<Down>", self.scrolldown)
@@ -59,39 +64,25 @@ class Browser:
     def draw(self):
         self.canvas.delete("all")
 
-        scroll_x_visible=self.max_x > self.width
-        scroll_y_visible=self.max_y > self.height
-
         for x, y, c, f in self.display_list:
             if y > self.scroll_y + self.height: continue
             if y < VSTEP + self.scroll_y: continue
             if x > self.scroll_x + self.width: continue
             if x < HSTEP + self.scroll_x: continue
             
-            self.canvas.create_text(x - self.scroll_x, y - self.scroll_y, text=c, font=f, anchor="nw")
+            text_x=x - self.scroll_x
+            text_y=y - self.scroll_y
+            self.canvas.create_text(text_x, text_y, text=c, font=f, anchor="nw")
 
-        scrollbar_color="#229"
-        scrollbar_thickness=5
-        scrollbar_window_offset=2 # scrollbar window padding
-        scrollbar_offset=15 # scrollbar offset at ends
-        if scroll_y_visible == True:
-            x0=self.width-scrollbar_thickness-scrollbar_window_offset
-            x1=self.width-scrollbar_window_offset
+        window=(self.width, self.height)
+        max=(self.max_x, self.max_y)
+        scroll=(self.scroll_x, self.scroll_y)
+        self.scrollbar_x.update(window, max, scroll)
+        self.scrollbar_y.update(window, max, scroll)
 
-            y0=self.scroll_y+scrollbar_window_offset+scrollbar_offset
-            viewport_percentage=self.height/self.max_y            
-            y1=self.scroll_y+(self.height-scrollbar_window_offset-scrollbar_offset)*viewport_percentage
-
-            self.canvas.create_rectangle(x0, y0, x1, y1, fill=scrollbar_color)
-        if scroll_x_visible == True:
-
-            x0=self.scroll_x+scrollbar_offset
-            viewport_percentage=self.width/self.max_x
-            x1=self.scroll_x+(self.width-scrollbar_window_offset-scrollbar_offset)*viewport_percentage
-            y0=self.height-scrollbar_thickness-scrollbar_window_offset
-            y1=self.height-scrollbar_window_offset
-            self.canvas.create_rectangle(x0, y0, x1, y1, fill=scrollbar_color)
-
+        self.scrollbar_x.draw(self.canvas)
+        self.scrollbar_y.draw(self.canvas)
+        
     def configure(self, e):
         if self.width != e.width or self.height != e.height:
             #print("Configure - previous:{}x{}; current:{}x{}".format(self.width, self.height, e.width, e.height))
