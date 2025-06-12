@@ -84,20 +84,12 @@ class Layout:
             elif tok.tag == "/small": self.fontsize += 2
             elif tok.tag == "big": self.fontsize += 4
             elif tok.tag == "/big": self.fontsize -= 4
-            elif tok.tag == "br": 
-                self.flush()
-            elif tok.tag == "br/": 
-                self.flush()
-            elif tok.tag == "br /": 
-                self.flush()
-            elif tok.tag == "div": 
-                self.flush()
-            elif tok.tag == "/div": 
-                self.flush()
-                self.cursor_y+=VSTEP
-            elif tok.tag == "/p":
-                self.flush()
-                self.cursor_y+=VSTEP
-            elif tok.tag == "/li":
-                self.flush()
-                self.cursor_y+=VSTEP
+            elif tok.tag == "h1": self.fontsize+=6
+            elif tok.tag == "/h1": self.fontsize-=6;self.flush(); self.cursor_y+=VSTEP
+            elif tok.tag == "br": self.flush()
+            elif tok.tag == "br/": self.flush()
+            elif tok.tag == "br /": self.flush()
+            elif tok.tag == "div": self.flush()
+            elif tok.tag == "/div": self.flush(); self.cursor_y+=VSTEP
+            elif tok.tag == "/p": self.flush(); self.cursor_y+=VSTEP
+            elif tok.tag == "/li": self.flush(); self.cursor_y+=VSTEP
