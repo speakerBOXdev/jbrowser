@@ -1,6 +1,9 @@
 import socket
 import ssl
 import tkinter
+import tkinter.font
+from layout import *
+from tag import *
 
 WIDTH, HEIGHT = 800, 600
 HSTEP, VSTEP = 12, 18
@@ -38,12 +41,12 @@ class Browser:
 
     def load(self, url):
         response=url.request()
-        text=self.lex(response)
-        self.display_list = layout(text)
+        tokens=self.lex(response)
+        self.display_list=Layout(tokens).display_list
 
         self.max_x=0
         self.max_y=0
-        for x, y, c in self.display_list:
+        for x, y, c, f in self.display_list:
             if x > self.max_x: self.max_x=x
             if y > self.max_y: self.max_y=y
 
@@ -55,12 +58,13 @@ class Browser:
         scroll_x_visible=self.max_x > self.width
         scroll_y_visible=self.max_y > self.height
 
-        for x, y, c in self.display_list:
+        for x, y, c, f in self.display_list:
             if y > self.scroll_y + self.height: continue
             if y < VSTEP + self.scroll_y: continue
             if x > self.scroll_x + self.width: continue
             if x < HSTEP + self.scroll_x: continue
-            self.canvas.create_text(x - self.scroll_x, y - self.scroll_y, text=c)
+            
+            self.canvas.create_text(x - self.scroll_x, y - self.scroll_y, text=c, font=f, anchor="nw")
 
         scrollbar_color="#229"
         scrollbar_thickness=5
@@ -85,31 +89,34 @@ class Browser:
             self.canvas.create_rectangle(x0, y0, x1, y1, fill=scrollbar_color)
 
     def lex(self, body):
-        text = ""
+
+        out = []
+        buffer = ""
         in_tag = False
-        in_entity = False
-        entity=""
+        #in_entity = False
         
         for c in body:
             if c == "<":
                 in_tag = True
+                if buffer: out.append(Text(buffer))
+                buffer = ""
             elif c == ">":
                 in_tag = False
-            elif c == "&":
-                in_entity = True
-                entity="&"
-            elif c == ";":
-                in_entity = False
-                entity=entity+";"
-                entityValue=get_entity_val(entity)
-                text+=entityValue
-                entity=""
-            elif not in_tag:
-                if in_entity:
-                    entity+=c
-                else:
-                    text+=c
-        return text
+                out.append(Tag(buffer))
+                buffer = ""
+            # elif c == "&":
+            #     in_entity = True
+            # elif c == ";":
+            #     in_entity = False
+            #     out.append(Entity(buffer))
+            #     buffer = ""
+            else:
+            #elif not in_tag:
+                buffer+=c
+
+        if not in_tag and buffer:
+            out.append(Text(buffer))
+        return out
 
     def configure(self, e):
         if self.width != e.width or self.height != e.height:
@@ -249,29 +256,19 @@ class URL:
 
         return content
 
-def layout(text):
-    display_list = []
-    cursor_x, cursor_y = HSTEP, VSTEP
-    for c in text:
-        if c == "\n":
-            cursor_y+=VSTEP
-            cursor_x=HSTEP
-        else:            
-            display_list.append((cursor_x, cursor_y, c))
-            cursor_x+=HSTEP
-
-        # if (cursor_x >= WIDTH-HSTEP):
-        #     cursor_x=HSTEP
-        #     cursor_y+=VSTEP   
-
-    return display_list
-
 def get_entity_val(entity):
-    if entity == "&lt;":
+    print("Entity:{}".format(entity))
+    if entity == "lt":
         return "<"
-    elif entity == "&gt;":
+    elif entity == "gt":
         return ">"
-    return ""
+    elif entity == "amp":
+        return "&"
+    elif entity == "copy":
+        return "©"
+    elif entity == "ndash":
+        return "–"
+    return entity
 
 if __name__ == "__main__":
     import sys
