@@ -1,6 +1,8 @@
 class Tag:
     def __init__(self, tag):
         self.tag=tag
+        if " " in self.tag:
+            self.tag, attributes = self.tag.split(" ", 1)
         #print("Tag:{}".format(self.tag))
 
     
