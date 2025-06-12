@@ -84,7 +84,7 @@ class Layout:
             elif tok.tag == "/small": self.fontsize += 2
             elif tok.tag == "big": self.fontsize += 4
             elif tok.tag == "/big": self.fontsize -= 4
-            elif tok.tag == "h1": self.fontsize+=6
+            elif tok.tag == "h1": self.flush(); self.cursor_y+=VSTEP; self.fontsize+=6
             elif tok.tag == "/h1": self.fontsize-=6;self.flush(); self.cursor_y+=VSTEP
             elif tok.tag == "br": self.flush()
             elif tok.tag == "br/": self.flush()
