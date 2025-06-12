@@ -77,7 +77,7 @@ class Layout:
                 self.word(word)
         # if isinstance(tok, Entity):
         #     self.entity(tok.entity)
-        elif isinstance(tok, Tag):
+        elif isinstance(tok, Element):
             if tok.tag == "i": self.style="italic"
             elif tok.tag == "/i": self.style="roman"
             elif tok.tag == "b": self.weight="bold"
