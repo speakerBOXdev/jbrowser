@@ -3,6 +3,7 @@ from tag import *
 
 HSTEP, VSTEP = 12, 18
 WIDTH = 800
+FONTS = {}
 class Layout:
     def __init__(self, tokens):
         self.display_list = []
@@ -32,8 +33,17 @@ class Layout:
         self.cursor_x = HSTEP
         self.line = []
 
+    def get_font(self, size, weight, style):
+        key = (size, weight, style)
+        if key not in FONTS:
+            font = tkinter.font.Font(size=size, weight=weight,
+                slant=style)
+            label = tkinter.Label(font=font)
+            FONTS[key] = (font, label)
+        return FONTS[key][0]
+
     def word(self, word):
-        font = tkinter.font.Font(size=self.fontsize,slant=self.style,weight=self.weight)
+        font = self.get_font(self.fontsize, self.weight, self.style)
         sw=font.measure(" ")
         w = font.measure(word)
         cursor_x=self.cursor_x + w + sw
@@ -44,7 +54,7 @@ class Layout:
         self.cursor_x+= w + sw
         
     def entity(self, entity):
-        font = tkinter.font.Font(size=self.fontsize,slant=self.style,weight=self.weight)
+        font = self.get_font(self.fontsize, self.weight, self.style)
         sw=font.measure(" ")
         entityVal=self.get_entity_val(entity)
         w = font.measure(entityVal)
