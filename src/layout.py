@@ -6,8 +6,8 @@ WIDTH = 800
 FONTS = {}
 class Layout:
     def __init__(self, tokens):
+        self.title="BROWSER"
         self.display_list = []
-
         self.cursor_x = HSTEP
         self.cursor_y = VSTEP
         self.weight = "normal"
@@ -15,7 +15,7 @@ class Layout:
         self.fontsize=14
 
         self.line = []
-
+        self.istitle=False
         for tok in tokens:
             self.token(tok)
         self.flush()
@@ -68,7 +68,11 @@ class Layout:
         
         
     def token(self, tok):
+        
         if isinstance(tok, Text):
+            if self.istitle:
+                self.title=tok.text
+                return
             for word in tok.text.split():
                 self.word(word)
         # if isinstance(tok, Entity):
@@ -93,3 +97,5 @@ class Layout:
             elif tok.tag == "/div": self.flush(); self.cursor_y+=VSTEP
             elif tok.tag == "/p": self.flush(); self.cursor_y+=VSTEP
             elif tok.tag == "/li": self.flush(); self.cursor_y+=VSTEP
+            elif tok.tag == "title":self.istitle=True
+            elif tok.tag == "/title":self.istitle=False

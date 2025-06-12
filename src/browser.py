@@ -42,7 +42,9 @@ class Browser:
     def load(self, url):
         response=url.request()
         tokens=self.lex(response)
-        self.display_list=Layout(tokens).display_list
+        layout=Layout(tokens)
+        self.window.title(layout.title)
+        self.display_list=layout.display_list
 
         self.max_x=0
         self.max_y=0
