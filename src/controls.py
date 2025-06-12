@@ -1,4 +1,5 @@
 
+HSTEP, VSTEP = 12, 18
 class ScrollBar:
 
     def __init__(self, thickness=5, color="#229", visible=True, direction="vertical"):
@@ -48,7 +49,8 @@ class ScrollBar:
 
             # Calculate percentages for vertical
             range=window_height-t-b
-            scroll_pct=self.scroll_y/window_height
+            max=max_y+VSTEP+VSTEP-window_height
+            scroll_pct=self.scroll_y/max
             viewport_pct=window_height/max_y
             halfheight=range*viewport_pct/2
             
@@ -58,7 +60,8 @@ class ScrollBar:
         elif self.direction == "horizontal":
             # Calculate percentages for horizontal
             range=window_width-l-r
-            scroll_pct=self.scroll_x/window_width
+            max=max_x+HSTEP+HSTEP-window_width
+            scroll_pct=self.scroll_x/max
             viewport_pct=window_width/max_x
             halfwidth=(range*viewport_pct)/2
             

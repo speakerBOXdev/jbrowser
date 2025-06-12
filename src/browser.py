@@ -9,7 +9,7 @@ from parser import *
 
 WIDTH, HEIGHT = 800, 600
 HSTEP, VSTEP = 12, 18
-SCROLL_STEP = 10
+SCROLL_STEP = 100
 class Browser:
     def __init__(self):
 
@@ -59,14 +59,18 @@ class Browser:
             if x > self.max_x: self.max_x=x
             if y > self.max_y: self.max_y=y
 
+        self.max_x+=HSTEP
+        self.max_y+=VSTEP
         self.draw()
 
     def draw(self):
         self.canvas.delete("all")
 
         for x, y, c, f in self.display_list:
-            if y > self.scroll_y + self.height: continue
+
             if y < VSTEP + self.scroll_y: continue
+            if y > self.scroll_y + self.height: continue
+            
             if x > self.scroll_x + self.width: continue
             if x < HSTEP + self.scroll_x: continue
             
@@ -104,7 +108,7 @@ class Browser:
         self.draw()
 
     def scrollbottom(self, e):
-        self.scroll_y=self.height
+        self.scroll_y=self.max_y+VSTEP+VSTEP-self.height
         self.draw()
 
     def scrollleft(self, e):
@@ -118,17 +122,21 @@ class Browser:
 
     def scrollright(self, e):
         scroll=self.scroll_x+SCROLL_STEP
-        if scroll > self.width:
-            scroll=self.width
-            
+
+
+        max=self.max_x+SCROLL_STEP-self.width
+        if scroll > max:
+            scroll=max
+
         if scroll != self.scroll_x:
             self.scroll_x=scroll
             self.draw()
 
     def scrolldown(self, e):
         scroll=self.scroll_y+SCROLL_STEP
-        if scroll > self.height:
-            scroll=self.height
+        max=self.max_y+VSTEP+VSTEP-self.height
+        if scroll > max:
+            scroll=max
         
         if scroll != self.scroll_y:
             self.scroll_y=scroll
@@ -220,20 +228,6 @@ class URL:
         s.close()
 
         return content
-
-def get_entity_val(entity):
-    print("Entity:{}".format(entity))
-    if entity == "lt":
-        return "<"
-    elif entity == "gt":
-        return ">"
-    elif entity == "amp":
-        return "&"
-    elif entity == "copy":
-        return "©"
-    elif entity == "ndash":
-        return "–"
-    return entity
 
 if __name__ == "__main__":
     import sys
