@@ -24,8 +24,13 @@ class Browser:
         )
         self.canvas.pack(fill="both",expand=True)
 
-        self.scrollbar_y=ScrollBar()
-        self.scrollbar_x=ScrollBar(direction="horizontal")
+        self.build_header()
+
+        self.controls=[]
+        self.controls.append(ScrollBar())
+        self.controls.append(ScrollBar(direction="horizontal"))
+        #self.controls.append(Button(10, 10, 20, 5))
+
 
         self.scroll_y = 0
         self.scroll_x = 0
@@ -43,9 +48,30 @@ class Browser:
         self.window.bind("<Button-4>", self.scrollwheel)
         self.window.bind("<Button-5>", self.scrollwheel)
         self.window.bind("<Configure>", self.configure)
-        
+
+    def build_header(self):
+
+        self.header=tkinter.Frame(self.window, height=50, width=self.width, bg="navy")
+        self.header.place(x=0, y=0)
+
+        self.txturl=tkinter.Text(self.header,height=1, width=50)
+        self.txturl.pack()
+        self.refresh=tkinter.Button(self.header, width=50, text="Go", command=self.reload)
+        self.refresh.pack()
+
+
+    def reload(self):
+        urlvalue=self.txturl.get("1.0", "end-1c")
+        print("New URL:{}".format(urlvalue))
+        url=URL(urlvalue)
+        self.load(url)        
 
     def load(self, url):
+
+        urlvalue=self.txturl.get("1.0", "end-1c")
+        if urlvalue == "":
+            self.txturl.insert(tkinter.END, url.value)
+
         response=url.request()
         parser =HTMLParser(response)
         tokens=parser.parse()
@@ -81,11 +107,10 @@ class Browser:
         window=(self.width, self.height)
         max=(self.max_x, self.max_y)
         scroll=(self.scroll_x, self.scroll_y)
-        self.scrollbar_x.update(window, max, scroll)
-        self.scrollbar_y.update(window, max, scroll)
 
-        self.scrollbar_x.draw(self.canvas)
-        self.scrollbar_y.draw(self.canvas)
+        for control in self.controls:
+            if isinstance(control, ScrollBar): control.update(window, max, scroll)
+            control.draw(self.canvas)
         
     def configure(self, e):
         if self.width != e.width or self.height != e.height:
@@ -155,6 +180,8 @@ class URL:
     def __init__(self, url=""):
         if (url == ""):
             url="file:///home/josh/jbrowser/tests/resources/simple.html"
+
+        self.value=url
 
         self.scheme, url = url.split("://", 1)
         assert self.scheme in ["http", "https", "file", "data"]
