@@ -17,14 +17,15 @@ class Browser:
         self.height=HEIGHT
 
         self.window = tkinter.Tk()
-        self.canvas = tkinter.Canvas(
-            self.window,
+
+        self.build_header(self.window)
+
+        self.canvas = tkinter.Canvas(self.window,
             width=self.width,
-            height=self.height
+            height=self.height-50,
         )
         self.canvas.pack(fill="both",expand=True)
 
-        self.build_header()
 
         self.controls=[]
         self.controls.append(ScrollBar())
@@ -53,15 +54,18 @@ class Browser:
         self.max_x=0
         self.max_y=0
 
-    def build_header(self):
+    def build_header(self, parent):
 
-        self.header=tkinter.Frame(self.window, height=50, width=self.width, bg="navy")
+        self.header=tkinter.Frame(parent, height=25, width=self.width, bg="navy")
         self.header.place(x=0, y=0)
+        self.header.pack(fill="x", expand=True)
 
         self.txturl=tkinter.Text(self.header,height=1, width=50)
-        self.txturl.pack()
-        self.refresh=tkinter.Button(self.header, width=50, text="Go", command=self.reload)
-        self.refresh.pack()
+        self.txturl.grid(row=0, column=0)
+        #self.txturl.pack()
+        self.refresh=tkinter.Button(self.header, width=5, text="Go", command=self.reload)
+        self.refresh.grid(row=0, column=1)
+        #self.refresh.pack()
 
 
     def reload(self):
@@ -76,8 +80,8 @@ class Browser:
         if urlvalue == "":
             self.txturl.insert(tkinter.END, url.value)
 
-        response=url.request()
-        parser =HTMLParser(response)
+        self.response=url.request()
+        parser =HTMLParser(self.response)
         nodes=parser.parse()
         print_tree(nodes)
         
