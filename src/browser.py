@@ -49,6 +49,10 @@ class Browser:
         self.window.bind("<Button-5>", self.scrollwheel)
         self.window.bind("<Configure>", self.configure)
 
+        self.display_list=[]
+        self.max_x=0
+        self.max_y=0
+
     def build_header(self):
 
         self.header=tkinter.Frame(self.window, height=50, width=self.width, bg="navy")
@@ -74,8 +78,10 @@ class Browser:
 
         response=url.request()
         parser =HTMLParser(response)
-        tokens=parser.parse()
-        layout=Layout(tokens)
+        nodes=parser.parse()
+        print_tree(nodes)
+        
+        layout=Layout(nodes)
         self.window.title(layout.title)
         self.display_list=layout.display_list
 
@@ -255,6 +261,11 @@ class URL:
         s.close()
 
         return content
+    
+def print_tree(node, indent=0):
+    print(" " * indent, node)
+    for child in node.children:
+        print_tree(child, indent + 2)
 
 if __name__ == "__main__":
     import sys

@@ -5,7 +5,7 @@ HSTEP, VSTEP = 12, 18
 WIDTH = 800
 FONTS = {}
 class Layout:
-    def __init__(self, tokens):
+    def __init__(self, nodes):
         self.title="BROWSER"
         self.display_list = []
         self.cursor_x = HSTEP
@@ -16,8 +16,7 @@ class Layout:
 
         self.line = []
         self.istitle=False
-        for tok in tokens:
-            self.token(tok)
+        self.recurse(nodes)
         self.flush()
 
     def flush(self):
@@ -50,34 +49,41 @@ class Layout:
         self.line.append((self.cursor_x, word, font))
         self.cursor_x+= w + sw
         
-        
-    def token(self, tok):
-        
-        if isinstance(tok, Text):
+    def recurse(self, tree):
+        if isinstance(tree, Text):
             if self.istitle:
-                self.title=tok.text
+                self.title=tree.text
                 return
-            for word in tok.text.split():
+            for word in tree.text.split():
                 self.word(word)
-        elif isinstance(tok, Element):
-            if tok.tag == "i": self.style="italic"
-            elif tok.tag == "/i": self.style="roman"
-            elif tok.tag == "b": self.weight="bold"
-            elif tok.tag == "/b": self.weight="normal"
-            elif tok.tag == "em": self.weight="bold"
-            elif tok.tag == "/em": self.weight="normal"
-            elif tok.tag == "small": self.fontsize -= 2
-            elif tok.tag == "/small": self.fontsize += 2
-            elif tok.tag == "big": self.fontsize += 4
-            elif tok.tag == "/big": self.fontsize -= 4
-            elif tok.tag == "h1": self.flush(); self.cursor_y+=VSTEP; self.fontsize+=6
-            elif tok.tag == "/h1": self.fontsize-=6;self.flush(); self.cursor_y+=VSTEP
-            elif tok.tag == "br": self.flush()
-            elif tok.tag == "br/": self.flush()
-            elif tok.tag == "br /": self.flush()
-            elif tok.tag == "div": self.flush()
-            elif tok.tag == "/div": self.flush(); self.cursor_y+=VSTEP
-            elif tok.tag == "/p": self.flush(); self.cursor_y+=VSTEP
-            elif tok.tag == "/li": self.flush(); self.cursor_y+=VSTEP
-            elif tok.tag == "title":self.istitle=True
-            elif tok.tag == "/title":self.istitle=False
+        else:
+            self.open_tag(tree.tag)
+            for child in tree.children:
+                self.recurse(child)
+            self.close_tag(tree.tag)
+
+    def open_tag(self, tag):
+        if tag=="i":
+            self.style="italic"
+        elif tag == "b": self.weight="bold"
+        elif tag == "em": self.weight="bold"
+        elif tag == "small": self.fontsize -= 2
+        elif tag == "big": self.fontsize += 4
+        elif tag == "h1": self.flush(); self.cursor_y+=VSTEP; self.fontsize+=6
+        elif tag == "br": self.flush()
+        elif tag == "div": self.flush()
+        elif tag == "title":self.istitle=True
+    def close_tag(self, tag):
+        if tag=="i":
+            self.style="roman"
+        elif tag == "i": self.style="roman"
+        elif tag == "b": self.weight="normal"
+        elif tag == "em": self.weight="normal"
+        elif tag == "small": self.fontsize += 2
+        elif tag == "big": self.fontsize -= 4
+        elif tag == "h1": self.fontsize-=6;self.flush(); self.cursor_y+=VSTEP
+        elif tag == "div": self.flush(); self.cursor_y+=VSTEP
+        elif tag == "p": self.flush(); self.cursor_y+=VSTEP
+        elif tag == "li": self.flush(); self.cursor_y+=VSTEP
+        elif tag == "title":self.istitle=False
+        
