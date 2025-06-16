@@ -51,8 +51,10 @@ class Browser:
         self.window.bind("<Configure>", self.configure)
 
         self.display_list=[]
+        self.src_display_list=[]
         self.max_x=0
         self.max_y=0
+        self.issource = False
 
     def build_header(self, parent):
 
@@ -67,7 +69,13 @@ class Browser:
         self.refresh.grid(row=0, column=1)
         #self.refresh.pack()
 
+        self.btnsrc=tkinter.Button(self.header, width=5, text="src", command=self.show_src)
+        self.btnsrc.grid(row=0, column=2)
 
+    def show_src(self):
+        self.issource=not self.issource
+        self.draw()
+        
     def reload(self):
         urlvalue=self.txturl.get("1.0", "end-1c")
         print("New URL:{}".format(urlvalue))
@@ -81,10 +89,14 @@ class Browser:
             self.txturl.insert(tkinter.END, url.value)
 
         self.response=url.request()
+        srclayout=SrcLayout(self.response)
+        self.src_display_list=srclayout.display_list
         parser =HTMLParser(self.response)
         nodes=parser.parse()
-        print_tree(nodes)
+        #print_tree(nodes)
         
+        
+
         layout=Layout(nodes)
         self.window.title(layout.title)
         self.display_list=layout.display_list
@@ -102,7 +114,12 @@ class Browser:
     def draw(self):
         self.canvas.delete("all")
 
-        for x, y, c, f in self.display_list:
+        if self.issource:
+            display_list=self.src_display_list
+        else:
+            display_list=self.display_list
+
+        for x, y, c, f in display_list:
 
             if y < VSTEP + self.scroll_y: continue
             if y > self.scroll_y + self.height: continue

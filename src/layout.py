@@ -86,4 +86,43 @@ class Layout:
         elif tag == "p": self.flush(); self.cursor_y+=VSTEP
         elif tag == "li": self.flush(); self.cursor_y+=VSTEP
         elif tag == "title":self.istitle=False
+
+class SrcLayout:
+    def __init__(self, text):
+        self.text=text
+        self.display_list = []
+        self.cursor_x = HSTEP
+        self.cursor_y = VSTEP
+        self.weight = "normal"
+        self.style = "roman"
+        self.fontsize=12
+
+    def get_font(self, size, weight, style):
+        key = (size, weight, style)
+        if key not in FONTS:
+            font = tkinter.font.Font(size=size, weight=weight,
+                slant=style)
+            label = tkinter.Label(font=font)
+            FONTS[key] = (font, label)
+        return FONTS[key][0]
+
+    def word(self, word):
+        font = self.get_font(self.fontsize, self.weight, self.style)
+        w = font.measure(word)
+        #self.line.append((self.cursor_x, word, font))
+        self.display_list.append(self.cursor_x,word, font)
+        self.cursor_x+= w
         
+    def layout(self):
+        text=""
+        for c in self.text:
+            if c == ' ':
+                if text != "":
+                    self.word(text)
+                text=""
+            elif c == '\n':
+                self.cursor_y+=VSTEP
+                self.cursor_x=HSTEP
+                continue
+            else:
+                text+=c
