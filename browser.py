@@ -4,7 +4,7 @@ import tkinter
 import tkinter.font
 from layout import *
 from tag import *
-from controls import *26
+from controls import *
 from parser import *
 
 WIDTH, HEIGHT = 800, 600

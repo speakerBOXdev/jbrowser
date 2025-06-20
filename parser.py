@@ -5,7 +5,7 @@ SELF_CLOSING_TAGS = [
 ]
 
 class HTMLParser:
-    def __init__(self, body):
+    def __init__(self, body: str):
         self.body = body
         self.unfinished = []
         self.HEAD_TAGS = [
@@ -16,18 +16,29 @@ class HTMLParser:
     def parse(self):
         text = ""
         in_tag = False
+        is_comment = False
         for c in self.body:
             if c == "<":
+                if is_comment:
+                    continue
                 in_tag = True
                 if text: self.add_text(text)
                 text = ""
             elif c == ">":
-                in_tag = False
-                self.add_tag(text)
-                text = ""
+                if is_comment: 
+                    if text.endswith("--"):
+                        is_comment= False
+                        text = ""
+                else:
+                    in_tag = False
+                    self.add_tag(text)
+                    text = ""
             else:
                 text += c
-        if not in_tag and text:
+                if text=="!--":
+                    is_comment=True
+
+        if not is_comment and not in_tag and text:
             self.add_text(text)
         return self.finish()
     
