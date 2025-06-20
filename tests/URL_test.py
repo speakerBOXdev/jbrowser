@@ -1,5 +1,5 @@
 import unittest
-from src.browser import URL
+from browser import URL
 
 class URLTest(unittest.TestCase):
 

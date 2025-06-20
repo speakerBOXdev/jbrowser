@@ -1,5 +1,5 @@
 import unittest
-from src.browser import Browser
+from browser import Browser
 
 class URLTest(unittest.TestCase):
 
@@ -18,6 +18,3 @@ class URLTest(unittest.TestCase):
         undertest=Browser()
         undertest.show_src()
         self.assertEqual(True, undertest.issource)
-
-if __name__ == '__main__':
-    unittest.main()
