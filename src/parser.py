@@ -3,10 +3,15 @@ SELF_CLOSING_TAGS = [
     "area", "base", "br", "col", "embed", "hr", "img", "input",
     "link", "meta", "param", "source", "track", "wbr",
 ]
+
 class HTMLParser:
     def __init__(self, body):
         self.body = body
         self.unfinished = []
+        self.HEAD_TAGS = [
+            "base", "basefont", "bgsound", "noscript",
+            "link", "meta", "title", "style", "script",
+        ]
 
     def parse(self):
         text = ""
@@ -28,6 +33,7 @@ class HTMLParser:
     
     def add_text(self, text):
             if text.isspace(): return
+            self.implicit_tags(None)
             parent = self.unfinished[-1]
             node = Text(text, parent)
             parent.children.append(node)
@@ -35,6 +41,7 @@ class HTMLParser:
     def add_tag(self, tag):
         if tag.startswith("!"): return
         tag, attributes = self.get_attributes(tag)
+        self.implicit_tags(tag)
         if tag.startswith("/"):
             if len(self.unfinished) == 1: return
             node = self.unfinished.pop()
@@ -64,8 +71,25 @@ class HTMLParser:
         return tag, attributes
     
     def finish(self):
+        if not self.unfinished:
+            self.implicit_tags(None)
         while len(self.unfinished) > 1:
             node = self.unfinished.pop()
             parent = self.unfinished[-1]
             parent.children.append(node)
         return self.unfinished.pop()
+    
+    def implicit_tags(self, tag):
+        while True:
+            open_tags = [node.tag for node in self.unfinished]
+            if open_tags == [] and tag != "html":
+                self.add_tag("html")
+            elif open_tags == ["html"] and tag not in ["head", "body", "/html"]:
+                if tag in self.HEAD_TAGS:
+                    self.add_tag("head")
+                else:
+                    self.add_tag("body")
+            elif open_tags == ["html", "head"] and tag not in ["/head"] + self.HEAD_TAGS:
+                self.add_tag("/head")
+            else:
+                break

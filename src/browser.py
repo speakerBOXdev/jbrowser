@@ -17,24 +17,25 @@ class Browser:
         self.height=HEIGHT
 
         self.window = tkinter.Tk()
-
         self.build_header(self.window)
-
         self.canvas = tkinter.Canvas(self.window,
             width=self.width,
             height=self.height-50,
         )
         self.canvas.pack(fill="both",expand=True)
 
-
         self.controls=[]
         self.controls.append(ScrollBar())
         self.controls.append(ScrollBar(direction="horizontal"))
-        #self.controls.append(Button(10, 10, 20, 5))
+        
+        self.scroll_y = 0 # Vertical Scroll Offest
+        self.scroll_x = 0 # Horizontal scroll offset
+        self.max_x=0 # maximum x position of content
+        self.max_y=0 # maximum y position of content
+        self.display_list=[]
+        self.src_display_list=[]
+        self.issource = False
 
-
-        self.scroll_y = 0
-        self.scroll_x = 0
         self.window.bind("<Down>", self.scrolldown)
         self.window.bind("<Up>", self.scrollup)
         self.window.bind("<Left>", self.scrollleft)
@@ -50,11 +51,6 @@ class Browser:
         self.window.bind("<Button-5>", self.scrollwheel)
         self.window.bind("<Configure>", self.configure)
 
-        self.display_list=[]
-        self.src_display_list=[]
-        self.max_x=0
-        self.max_y=0
-        self.issource = False
 
     def build_header(self, parent):
 
@@ -93,10 +89,7 @@ class Browser:
         self.src_display_list=srclayout.display_list
         parser =HTMLParser(self.response)
         nodes=parser.parse()
-        #print_tree(nodes)
         
-        
-
         layout=Layout(nodes)
         self.window.title(layout.title)
         self.display_list=layout.display_list
