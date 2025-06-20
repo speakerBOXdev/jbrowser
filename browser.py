@@ -4,7 +4,7 @@ import tkinter
 import tkinter.font
 from layout import *
 from tag import *
-from controls import *
+from controls import *26
 from parser import *
 
 WIDTH, HEIGHT = 800, 600
@@ -78,7 +78,7 @@ class Browser:
         url=URL(urlvalue)
         self.load(url)        
 
-    def load(self, url):
+    def load(self, url: str):
 
         urlvalue=self.txturl.get("1.0", "end-1c")
         if urlvalue == "":
@@ -197,7 +197,7 @@ class Browser:
             self.draw()
 
 class URL:
-    def __init__(self, url=""):
+    def __init__(self, url: str=""):
         if (url == ""):
             url="file:///home/josh/jbrowser/tests/resources/simple.html"
 
@@ -223,7 +223,7 @@ class URL:
             self.host, port = self.host.split(":", 1)
             self.port = int(port)
 
-    def add_header(self, request, header, value):
+    def add_header(self, request: str, header: str, value: str) -> str:
         request += "{}: {}\r\n".format(header, value)
         return request
 

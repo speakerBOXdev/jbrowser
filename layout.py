@@ -32,7 +32,7 @@ class Layout:
         self.cursor_x = HSTEP
         self.line = []
 
-    def get_font(self, size, weight, style):
+    def get_font(self, size: int, weight: int, style: str) -> tkinter.font.Font:
         key = (size, weight, style)
         if key not in FONTS:
             font = tkinter.font.Font(size=size, weight=weight,
@@ -41,7 +41,7 @@ class Layout:
             FONTS[key] = (font, label)
         return FONTS[key][0]
 
-    def word(self, word):
+    def word(self, word: str):
         font = self.get_font(self.fontsize, self.weight, self.style)
         sw=font.measure(" ")
         w = font.measure(word)
@@ -62,7 +62,7 @@ class Layout:
                 self.recurse(child)
             self.close_tag(tree.tag)
 
-    def open_tag(self, tag):
+    def open_tag(self, tag: str):
         if tag=="i":
             self.style="italic"
         elif tag == "b": self.weight="bold"
@@ -73,7 +73,7 @@ class Layout:
         elif tag == "br": self.flush()
         elif tag == "div": self.flush()
         elif tag == "title":self.istitle=True
-    def close_tag(self, tag):
+    def close_tag(self, tag: str):
         if tag=="i":
             self.style="roman"
         elif tag == "i": self.style="roman"
@@ -88,7 +88,7 @@ class Layout:
         elif tag == "title":self.istitle=False
 
 class SrcLayout:
-    def __init__(self, text):
+    def __init__(self, text: str):
         self.text=text
         self.display_list = []
         self.cursor_x = HSTEP
@@ -97,7 +97,7 @@ class SrcLayout:
         self.style = "roman"
         self.fontsize=12
 
-    def get_font(self, size, weight, style):
+    def get_font(self, size: int, weight: int, style: str):
         key = (size, weight, style)
         if key not in FONTS:
             font = tkinter.font.Font(size=size, weight=weight,
@@ -106,7 +106,7 @@ class SrcLayout:
             FONTS[key] = (font, label)
         return FONTS[key][0]
 
-    def word(self, word):
+    def word(self, word: str):
         font = self.get_font(self.fontsize, self.weight, self.style)
         w = font.measure(word)
         #self.line.append((self.cursor_x, word, font))
