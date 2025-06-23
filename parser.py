@@ -13,6 +13,7 @@ class HTMLParser:
             "link", "meta", "title", "style", "script",
         ]
 
+
     def parse(self):
         text = ""
         in_tag = False
@@ -29,10 +30,10 @@ class HTMLParser:
                     if text.endswith("--"):
                         is_comment= False
                         text = ""
-                else:
-                    in_tag = False
-                    self.add_tag(text)
-                    text = ""
+                    continue
+                in_tag = False
+                self.add_tag(text)
+                text = ""
             else:
                 text += c
                 if text=="!--":
@@ -42,14 +43,14 @@ class HTMLParser:
             self.add_text(text)
         return self.finish()
     
-    def add_text(self, text):
+    def add_text(self, text: str):
             if text.isspace(): return
             self.implicit_tags(None)
             parent = self.unfinished[-1]
             node = Text(text, parent)
             parent.children.append(node)
     
-    def add_tag(self, tag):
+    def add_tag(self, tag: str):
         if tag.startswith("!"): return
         tag, attributes = self.get_attributes(tag)
         self.implicit_tags(tag)
@@ -58,16 +59,26 @@ class HTMLParser:
             node = self.unfinished.pop()
             parent = self.unfinished[-1]
             parent.children.append(node)
+            print("node {} is now closed by {} in parent {}".format(node.tag, tag, parent.tag))
         elif tag in SELF_CLOSING_TAGS:
             parent = self.unfinished[-1]
             node = Element(tag, attributes, parent)
             parent.children.append(node)
         else:
             parent = self.unfinished[-1] if self.unfinished else None
+            self.handle_nested(tag, parent)    
             node = Element(tag, attributes, parent)
             self.unfinished.append(node)
 
-    def get_attributes(self, text):
+    def handle_nested(self, tag: str, parent):
+        if parent == None:
+            return
+        if tag == "p" and parent.tag == "p":
+            self.add_tag("/p")
+        if tag == "li" and parent.tag == "li":
+            self.add_tag("/li")
+
+    def get_attributes(self, text: str):
         parts = text.split()
         tag = parts[0].casefold()
         attributes = {}
@@ -90,7 +101,7 @@ class HTMLParser:
             parent.children.append(node)
         return self.unfinished.pop()
     
-    def implicit_tags(self, tag):
+    def implicit_tags(self, tag: str):
         while True:
             open_tags = [node.tag for node in self.unfinished]
             if open_tags == [] and tag != "html":
