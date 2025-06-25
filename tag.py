@@ -1,5 +1,5 @@
 class Element:
-    def __init__(self, tag, attributes, parent):
+    def __init__(self, tag: str, attributes, parent):
         self.tag=tag
         self.attributes=attributes
         self.children=[]
@@ -19,3 +19,7 @@ class Text:
 class Entity:
     def __init__(self, entity):
         self.entity=entity
+
+class Script:
+    def __init__(self):
+        self.script = ""

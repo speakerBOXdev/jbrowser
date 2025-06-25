@@ -7,42 +7,69 @@ SELF_CLOSING_TAGS = [
 class HTMLParser:
     def __init__(self, body: str):
         self.body = body
-        self.unfinished = []
+        self.unfinished = [] 
         self.HEAD_TAGS = [
-            "base", "basefont", "bgsound", "noscript",
+            "base", "basefont", "bgsound", "noin_scriptin_script",
             "link", "meta", "title", "style", "script",
         ]
+        self.NON_NESTING_TAGS= [ "p", "li"]
+        self.scripts = []
+        self.state = HTMLParserState()
 
-
-    def parse(self):
+    def parse(self) -> Element:
         text = ""
-        in_tag = False
-        is_comment = False
+        self.state.reset()
+
         for c in self.body:
             if c == "<":
-                if is_comment:
+                if self.state.in_comment:
                     continue
-                in_tag = True
-                if text: self.add_text(text)
+                #if self.state.in_script: text+=c
+                if text: 
+                    if self.state.in_script: self.add_script(text + c)
+                    else: self.add_text(text)
                 text = ""
             elif c == ">":
-                if is_comment: 
+                if self.state.in_comment: 
                     if text.endswith("--"):
-                        is_comment= False
+                        self.state.in_comment= False
                         text = ""
                     continue
-                in_tag = False
-                self.add_tag(text)
+                
+                if text == "script":
+                    self.state.in_script=True
+                    self.add_tag(text)
+                    text = ""
+                    self.scripts.append(Script())
+                    continue
+                elif text == "/script":
+                    self.state.in_script=False
+                    last=self.scripts[-1]
+                    script=last.script.strip('<')
+                    self.scripts[-1].script=script
+                    
+                if self.state.in_script: self.add_script(text + c)
+                else: self.add_tag(text)
                 text = ""
             else:
                 text += c
                 if text=="!--":
-                    is_comment=True
+                    self.state.in_comment=True
 
-        if not is_comment and not in_tag and text:
+        if not self.state.in_comment and not self.state.in_tag and text:
             self.add_text(text)
-        return self.finish()
+        result = self.finish()
+        self.print_scripts()
+        return result
     
+    def print_scripts(self):
+        scripts_length=len(self.scripts)
+        print("Found {} scripts.".format(scripts_length))
+        if scripts_length == 0: return
+
+        for s in self.scripts:
+            print(s.script)
+
     def add_text(self, text: str):
             if text.isspace(): return
             self.implicit_tags(None)
@@ -50,33 +77,51 @@ class HTMLParser:
             node = Text(text, parent)
             parent.children.append(node)
     
+    def add_script(self, text: str):
+        current = self.scripts[-1]
+        current.script+=text
+        pass
+
     def add_tag(self, tag: str):
         if tag.startswith("!"): return
         tag, attributes = self.get_attributes(tag)
         self.implicit_tags(tag)
         if tag.startswith("/"):
-            if len(self.unfinished) == 1: return
-            node = self.unfinished.pop()
-            parent = self.unfinished[-1]
-            parent.children.append(node)
-            print("node {} is now closed by {} in parent {}".format(node.tag, tag, parent.tag))
+            self.add_tag_closed(tag)
         elif tag in SELF_CLOSING_TAGS:
-            parent = self.unfinished[-1]
-            node = Element(tag, attributes, parent)
-            parent.children.append(node)
+            self.add_tag_closed_self(tag, attributes)
         else:
-            parent = self.unfinished[-1] if self.unfinished else None
-            self.handle_nested(tag, parent)    
-            node = Element(tag, attributes, parent)
-            self.unfinished.append(node)
+            self.add_tag_open(tag, attributes)
+
+    def add_tag_open(self, tag: str, attributes):
+        parent = self.unfinished[-1] if self.unfinished else None
+        self.handle_nested(tag, parent)    
+        node = Element(tag, attributes, parent)
+        self.unfinished.append(node)
+        #print("node {} is now open in parent {}".format(node.tag, tag, parent.tag))
+        print("node {} is now open".format(node.tag, tag))
+        if tag == "script": self.state.in_script=True
+
+    def add_tag_closed_self(self, tag: str, attributes):
+        parent = self.unfinished[-1]
+        node = Element(tag, attributes, parent)
+        parent.children.append(node)
+        print("node {} is now closed by self".format(node.tag, tag))
+        if tag == "/script": self.state.in_script=False
+
+    def add_tag_closed(self, tag):
+        if len(self.unfinished) == 1: return
+        node = self.unfinished.pop()
+        parent = self.unfinished[-1]
+        parent.children.append(node)
+        #print("node {} is now closed by {} in parent {}".format(node.tag, tag, parent.tag))
+        print("node {} is now closed by {}".format(node.tag, tag))
 
     def handle_nested(self, tag: str, parent):
         if parent == None:
             return
-        if tag == "p" and parent.tag == "p":
-            self.add_tag("/p")
-        if tag == "li" and parent.tag == "li":
-            self.add_tag("/li")
+        if tag in self.NON_NESTING_TAGS and parent.tag == tag:
+            self.add_tag("/{}".format(tag))
 
     def get_attributes(self, text: str):
         parts = text.split()
@@ -92,7 +137,7 @@ class HTMLParser:
                 attributes[attrpair.casefold()] = ""
         return tag, attributes
     
-    def finish(self):
+    def finish(self) -> Element:
         if not self.unfinished:
             self.implicit_tags(None)
         while len(self.unfinished) > 1:
@@ -115,3 +160,43 @@ class HTMLParser:
                 self.add_tag("/head")
             else:
                 break
+
+
+
+class HTMLParserState:
+    def __init__(self):
+        self._in_tag = False
+        self._in_comment = False
+        self._in_script = False
+
+    @property
+    def in_tag(self):
+        return self._in_tag
+
+    @in_tag.setter
+    def in_tag(self, value: bool):
+        self._in_tag = value
+
+    @property
+    def in_comment(self):
+        return self._in_comment
+    
+    @in_comment.setter
+    def in_comment(self, value: bool):
+        self._in_comment = value
+
+    @property
+    def in_script(self):
+        return self._in_script
+    
+    @in_script.setter
+    def in_script(self, value: bool):
+        #if self._in_script == value: return
+        print("changing - in_script:{} -> {}".format(self._in_script, value))
+        self._in_script = value
+        print("changed - in_script:{}".format(self._in_script))
+
+    def reset(self):
+        self.in_tag = False
+        self.in_comment = False
+        self.in_script = False
